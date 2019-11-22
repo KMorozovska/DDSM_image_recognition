@@ -47,9 +47,15 @@ class LoadData:
         self.cancers_abnormalities_df['filename'] = self.cancers_abnormalities_df.apply(
             lambda row: row['FILE:'].split('.')[0].replace('_', '-'), axis=1)
 
-        self.benigns_abnormalities_df = self.benigns_abnormalities_df[
-            self.benigns_abnormalities_df['LESION_TYPE'].str.contains("CALCIFICATION") == False]
 
-        self.cancers_abnormalities_df = self.cancers_abnormalities_df[
-            self.cancers_abnormalities_df['LESION_TYPE'].str.contains("CALCIFICATION") == False]
+        self.benigns_abnormalities_df = self.remove_calcification(self.benigns_abnormalities_df)
+        self.cancers_abnormalities_df = self.remove_calcification(self.cancers_abnormalities_df)
+        self.merge_density(self.benigns_abnormalities_df, self.benigns_df)
+        self.merge_density(self.cancers_abnormalities_df, self.cancers_df)
 
+
+    def remove_calcification(self, df):
+        return df[df['LESION_TYPE'].str.contains("CALCIFICATION") == False]
+
+    def merge_density(self, df_ab, df):
+        return df_ab.merge(df[['DENSITY', 'filename']], left_on='filename', right_on='filename')
