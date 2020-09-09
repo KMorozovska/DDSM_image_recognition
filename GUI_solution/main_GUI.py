@@ -1,9 +1,9 @@
-from AppWindow import *
+from SelectDataWindow import *
 from tkinter import *
 
 def main():
     root = Tk()
-    app = AppWindow(root)
+    app = SelectDataWindow(root)
     root.mainloop()
 
 

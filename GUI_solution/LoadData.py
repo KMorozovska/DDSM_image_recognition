@@ -13,6 +13,7 @@ class LoadData:
         self.normals_df = None
 
         self.load()
+        self.clean()
 
 
     def load(self):
@@ -50,8 +51,8 @@ class LoadData:
 
         self.benigns_abnormalities_df = self.remove_calcification(self.benigns_abnormalities_df)
         self.cancers_abnormalities_df = self.remove_calcification(self.cancers_abnormalities_df)
-        self.merge_density(self.benigns_abnormalities_df, self.benigns_df)
-        self.merge_density(self.cancers_abnormalities_df, self.cancers_df)
+        self.benigns_abnormalities_df = self.merge_density(self.benigns_abnormalities_df, self.benigns_df)
+        self.cancers_abnormalities_df = self.merge_density(self.cancers_abnormalities_df, self.cancers_df)
 
 
     def remove_calcification(self, df):

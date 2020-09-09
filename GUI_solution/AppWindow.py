@@ -10,8 +10,8 @@ class AppWindow(ttk.Frame):
         ttk.Frame.__init__(self, master)
 
         self.master = master
-        self.master.maxsize(700, 500)
-        self.master.minsize(700, 500)
+        self.master.maxsize(700, 750)
+        self.master.minsize(700, 750)
         self.master.title("DDSM images processor")
         self.pack(fill="both", expand=True)
 
@@ -19,12 +19,15 @@ class AppWindow(ttk.Frame):
         self.density_2 = IntVar()
         self.density_3 = IntVar()
         self.density_4 = IntVar()
-        self.var_1 = IntVar()
-        self.var_2 = IntVar()
-        self.var_3 = IntVar()
+        self.var_shape_1 = IntVar()
+        self.var_shape_2 = IntVar()
+        self.var_shape_3 = IntVar()
         self.var_n = IntVar()
         self.var_c = IntVar()
         self.var_b = IntVar()
+        
+
+        self.conditions = []
 
         self.den_1_check = Checkbutton(self.master, text="1", variable=self.density_1)
         self.den_2_check = Checkbutton(self.master, text="2", variable=self.density_2)
@@ -35,9 +38,9 @@ class AppWindow(ttk.Frame):
         self.canc_check = Checkbutton(self.master, text="cancer", variable=self.var_c)
         self.ben_check = Checkbutton(self.master, text="benign", variable=self.var_b)
 
-        self.c1 = Checkbutton(self.master, text="SHAPE IRREGULAR", variable=self.var_1)
-        self.c2 = Checkbutton(self.master, text="SHAPE ARCHITECTURAL_DISTORTION", variable=self.var_2)
-        self.c3 = Checkbutton(self.master, text="MARGINS SPICULATED", variable=self.var_3)
+        self.c1 = Checkbutton(self.master, text="SHAPE IRREGULAR", variable=self.var_shape_1)
+        self.c2 = Checkbutton(self.master, text="SHAPE ARCHITECTURAL_DISTORTION", variable=self.var_shape_2)
+        self.c3 = Checkbutton(self.master, text="MARGINS SPICULATED", variable=self.var_shape_3)
 
         # subtlety
         # assesment
@@ -78,7 +81,19 @@ class AppWindow(ttk.Frame):
         selected_option_var.set("one")  # initial value
 
         b3 = ttk.Button(self, text="Select images", command = lambda: self.select_images())
-        b3.place(x=165, y=290)
+        b3.place(x=165, y=260)
+
+        scrollbar = Scrollbar(self.master)
+        scrollbar.place(relx=1, rely=0, relheight=1, anchor='ne')
+
+        mylist = Listbox(self.master, yscrollcommand=scrollbar.set)
+        for line in range(100):
+            mylist.insert(END, "This is line number " + str(line))
+
+        mylist.pack(side=LEFT, fill=BOTH)
+        scrollbar.config(command=mylist.yview)
+
+
 
         # ----------- STYLES ------------
 
@@ -109,6 +124,10 @@ class AppWindow(ttk.Frame):
         if (self.var_n.get() and self.var_c.get()) or (self.var_n.get() and self.var_b.get()):
             pass # popup window
 
+
+        # if self.var : warunek_var = TRUE
+        # na koncu funkcja ze wszystkimi warunkami
+
         if self.var_n.get():
             df = self.all_data.normals_df
         if self.var_c.get():
@@ -118,25 +137,33 @@ class AppWindow(ttk.Frame):
         if self.var_c.get() and self.var_b.get():
             df = pd.concat([self.all_data.cancers_abnormalities_df, self.all_data.benigns_abnormalities_df], sort=True)
 
-        conditions = []
+        if self.var_shape_1.get():
+            self.conditions.append(self.c1.cget("text"))
+        if self.var_shape_2.get():
+            self.conditions.append(self.c2.cget("text"))
+        if self.var_shape_3.get():
+            self.conditions.append(self.c3.cget("text"))
 
-        if self.var_1.get():
-            conditions.append(self.c1.cget("text"))
-        if self.var_2.get():
-            conditions.append(self.c2.cget("text"))
-        if self.var_3.get():
-            conditions.append(self.c3.cget("text"))
-
-        if self.density_check.get():
-            if len(conditions) > 0:
-                stats = PrepareData(df, density=4, lesion_type_list=conditions).count_values()
-            else:
-                stats = PrepareData(df, density=4).count_values()
+        if self.density_1.get():
+            stats = self.get_density_data(df, 1)
+        elif self.density_2.get():
+            stats = self.get_density_data(df, 2)
+        elif self.density_3.get():
+            stats = self.get_density_data(df, 3)
+        elif self.density_4.get():
+            stats = self.get_density_data(df, 4)
         else:
-            if len(conditions) > 0:
-                stats = PrepareData(df, lesion_type_list=conditions).count_values()
+            if len(self.conditions) > 0:
+                stats = PrepareData(df, lesion_type_list=self.conditions).count_values()
             else:
                 stats = PrepareData(df).count_values()
 
         print(stats)
 
+    def get_density_data(self, df, density):
+        if len(self.conditions) > 0:
+            stats = PrepareData(df, density=density, lesion_type_list=self.conditions).count_values()
+        else:
+            stats = PrepareData(df, density=density).count_values()
+
+        return stats
